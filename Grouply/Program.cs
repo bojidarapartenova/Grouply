@@ -6,6 +6,7 @@ using Grouply.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Grouply.Services;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 public class Program
 {
@@ -26,12 +27,11 @@ public class Program
             options.Password.RequireUppercase = false;
             options.Password.RequireLowercase = false;
         })
-            .AddEntityFrameworkStores<GrouplyDbContext>()
-            .AddRoles<IdentityRole>()
-            .AddSignInManager<SignInManager<ApplicationUser>>()
-            .AddUserManager<UserManager<ApplicationUser>>();
+        .AddEntityFrameworkStores<GrouplyDbContext>()
+        .AddDefaultTokenProviders(); 
 
         builder.Services.AddScoped<IGroupService, GroupService>();
+        builder.Services.AddTransient<IEmailSender, NoOpEmailSender>();
 
         builder.Services.AddControllersWithViews();
 
