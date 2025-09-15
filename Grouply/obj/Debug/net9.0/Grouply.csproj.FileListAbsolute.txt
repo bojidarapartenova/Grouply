@@ -812,3 +812,4 @@
 /Users/bozidarapartenova/Documents/GitHub/Grouply/Grouply/obj/Debug/net9.0/Grouply.pdb
 /Users/bozidarapartenova/Documents/GitHub/Grouply/Grouply/obj/Debug/net9.0/Grouply.genruntimeconfig.cache
 /Users/bozidarapartenova/Documents/GitHub/Grouply/Grouply/obj/Debug/net9.0/ref/Grouply.dll
+/Users/bozidarapartenova/Documents/GitHub/Grouply/Grouply/obj/Debug/net9.0/Grouply.sourcelink.json
