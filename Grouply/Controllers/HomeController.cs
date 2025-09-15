@@ -1,31 +1,28 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Grouply.Models;
+using Grouply.Data;
+using Microsoft.AspNetCore.Authorization;
 
-namespace Grouply.Controllers;
-
-public class HomeController : Controller
+namespace Grouply.Controllers
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
+    public class HomeController : BaseController
     {
-        _logger = logger;
-    }
+        private readonly GrouplyDbContext context;
+        public HomeController(GrouplyDbContext context)
+        {
+            this.context = context;
+        }
 
-    public IActionResult Index()
-    {
-        return View();
-    }
+        [AllowAnonymous]
+        public IActionResult Index()
+        {
+            return View();
+        }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
-
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        public IActionResult Privacy()
+        {
+            return View();
+        }
     }
 }
