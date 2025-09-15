@@ -14,31 +14,46 @@ namespace Grouply.Infrastructure
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var dbContext = serviceProvider.GetRequiredService<GrouplyDbContext>();
 
+            // Ensure Admin role exists
             bool isAdminRoleExisting = await roleManager.RoleExistsAsync("Admin");
             if (!isAdminRoleExisting)
             {
                 await roleManager.CreateAsync(new IdentityRole("Admin"));
             }
 
-            var adminUser = await userManager.FindByEmailAsync("admin@example.com");
-            if (adminUser == null)
-            {
-                var newAdmin = new ApplicationUser
-                {
-                    UserName = "admin",
-                    Email = "admin@example.com",
-                    EmailConfirmed = true
-                };
+            // Remove duplicate admins if any
+            var duplicateAdmins = await dbContext.Users
+                .Where(u => u.Email == "admin@example.com")
+                .ToListAsync();
 
-                var result = await userManager.CreateAsync(newAdmin, "Admin123!");
-                if (result.Succeeded)
+            if (duplicateAdmins.Count > 1)
+            {
+                // Keep the first, remove the rest
+                for (int i = 1; i < duplicateAdmins.Count; i++)
                 {
-                    await userManager.AddToRoleAsync(newAdmin, "Admin");
-                    adminUser = newAdmin;
+                    dbContext.Users.Remove(duplicateAdmins[i]);
+                }
+                await dbContext.SaveChangesAsync();
+            }
+
+            // Find or create admin safely
+            var admin = await dbContext.Users
+                .Where(u => u.Email == "admin@example.com")
+                .FirstOrDefaultAsync();
+
+            if (admin == null)
+            {
+                admin = new ApplicationUser { UserName = "admin", Email = "admin@example.com", EmailConfirmed = true };
+                var result = await userManager.CreateAsync(admin, "Password123!");
+                if (!result.Succeeded)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to create admin: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                 }
             }
 
-            var groups = GetSeedGroups(adminUser!.Id);
+            // Seed groups
+            var groups = GetSeedGroups(admin.Id);
             foreach (var group in groups)
             {
                 bool exists = await dbContext.Groups
@@ -53,6 +68,7 @@ namespace Grouply.Infrastructure
 
             await dbContext.SaveChangesAsync();
         }
+
 
         public static async Task SeedUsersAsync(this IServiceProvider serviceProvider)
         {

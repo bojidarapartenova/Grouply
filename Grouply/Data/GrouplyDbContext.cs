@@ -24,6 +24,11 @@ namespace Grouply.Data
         {
             base.OnModelCreating(builder);
 
+            builder.Entity<ApplicationUser>()
+                .HasIndex(u => u.NormalizedEmail)
+                .IsUnique();
+
+
             builder.Entity<Group>()
                 .HasOne(g => g.CreatedBy)
                 .WithMany(u => u.Groups)
