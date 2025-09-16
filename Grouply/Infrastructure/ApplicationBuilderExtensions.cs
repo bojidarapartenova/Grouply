@@ -12,6 +12,7 @@ namespace Grouply.Infrastructure
 
             await serviceProvider.SeedAdminAsync();
             await serviceProvider.SeedUsersAsync();
+            await serviceProvider.SeedPostsAsync();
         }
     }
 }

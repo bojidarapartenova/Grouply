@@ -3,26 +3,47 @@ using Microsoft.AspNetCore.Mvc;
 using Grouply.Models;
 using Grouply.Data;
 using Microsoft.AspNetCore.Authorization;
+using Grouply.Services.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Grouply.ViewModels.Home;
 
 namespace Grouply.Controllers
 {
     public class HomeController : BaseController
     {
-        private readonly GrouplyDbContext context;
-        public HomeController(GrouplyDbContext context)
+        private readonly IFeedService feedService;
+        private readonly UserManager<ApplicationUser> userManager;
+
+        public HomeController(IFeedService feedService, UserManager<ApplicationUser> userManager)
         {
-            this.context = context;
+            this.feedService = feedService;
+            this.userManager = userManager;
         }
 
         [AllowAnonymous]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
-        }
+            if (User.Identity?.IsAuthenticated ?? false)
+            {
+                // Logged in → personalized feed
+                var user = await userManager.GetUserAsync(User);
+                var followingPosts = await feedService.GetFollowingPostsAsync(user.Id);
+                var forYouPosts = await feedService.GetForYouPostsAsync();
 
-        public IActionResult Privacy()
-        {
-            return View();
+                var vm = new HomeFeedViewModel
+                {
+                    FollowingPosts = followingPosts,
+                    ForYouPosts = forYouPosts,
+                    HasJoinedGroups = followingPosts.Any()
+                };
+
+                return View("Index", vm); // render feed view
+            }
+
+            // Not logged in → public landing page
+            var popularPosts = await feedService.GetForYouPostsAsync();
+
+            return View("Landing", popularPosts); // render landing view
         }
     }
 }

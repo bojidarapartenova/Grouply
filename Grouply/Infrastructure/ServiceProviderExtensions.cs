@@ -153,6 +153,42 @@ namespace Grouply.Infrastructure
                 }
             };
         }
+
+        public static async Task SeedPostsAsync(this IServiceProvider serviceProvider)
+        {
+            var dbContext = serviceProvider.GetRequiredService<GrouplyDbContext>();
+            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+            // Get some users to assign posts
+            var admin = await userManager.FindByEmailAsync("admin@example.com");
+            var user = await userManager.FindByEmailAsync("user@example.com");
+
+            if (admin == null || user == null)
+                throw new InvalidOperationException("Seed users must exist before seeding posts.");
+
+            // Get existing groups
+            var groups = await dbContext.Groups.ToListAsync();
+
+            // Avoid duplicating posts
+            if (dbContext.Posts.Any())
+                return;
+
+            var posts = new List<Post>
+            {
+                new Post
+        {
+            Id = Guid.NewGuid(),
+            ContentText = "Sharing my latest fitness progress – feeling great!",
+            CreatedAt = DateTime.UtcNow.AddHours(-1),
+            GroupId = groups.FirstOrDefault(g => g.Name.Contains("Fitness Challenges"))?.Id ?? groups[3].Id,
+            UserId = user.Id
+        }
+            };
+
+            await dbContext.Posts.AddRangeAsync(posts);
+            await dbContext.SaveChangesAsync();
+        }
+
     }
 }
 

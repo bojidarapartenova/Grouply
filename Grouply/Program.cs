@@ -28,10 +28,11 @@ public class Program
             options.Password.RequireLowercase = false;
         })
         .AddEntityFrameworkStores<GrouplyDbContext>()
-        .AddDefaultTokenProviders(); 
+        .AddDefaultTokenProviders();
 
-        builder.Services.AddScoped<IGroupService, GroupService>();
         builder.Services.AddTransient<IEmailSender, NoOpEmailSender>();
+        builder.Services.AddScoped<IGroupService, GroupService>();
+        builder.Services.AddScoped<IFeedService, FeedService>();
 
         builder.Services.AddControllersWithViews();
 
