@@ -65,7 +65,6 @@ namespace Grouply.Infrastructure
                     dbContext.Groups.Add(group);
                 }
             }
-
             await dbContext.SaveChangesAsync();
         }
 
@@ -159,7 +158,7 @@ namespace Grouply.Infrastructure
             var dbContext = serviceProvider.GetRequiredService<GrouplyDbContext>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-            // Get some users to assign posts
+            // Ensure users exist
             var admin = await userManager.FindByEmailAsync("admin@example.com");
             var user = await userManager.FindByEmailAsync("user@example.com");
 
@@ -169,25 +168,44 @@ namespace Grouply.Infrastructure
             // Get existing groups
             var groups = await dbContext.Groups.ToListAsync();
 
-            // Avoid duplicating posts
-            if (dbContext.Posts.Any())
-                return;
-
+            // Define posts to seed
             var posts = new List<Post>
-            {
-                new Post
+    {
+        new Post
         {
             Id = Guid.NewGuid(),
             ContentText = "Sharing my latest fitness progress – feeling great!",
             CreatedAt = DateTime.UtcNow.AddHours(-1),
-            GroupId = groups.FirstOrDefault(g => g.Name.Contains("Fitness Challenges"))?.Id ?? groups[3].Id,
+            GroupId = groups.FirstOrDefault(g => g.Name.Contains("Fitness Challenges"))?.Id ?? Guid.NewGuid(),
+            UserId = user.Id
+        },
+        new Post
+        {
+            Id = Guid.NewGuid(),
+            ContentText = "What do you think about this lip gloss? Is it worth the money?",
+            MediaUrl = "https://www.sephora.com/productimages/sku/s2830453-main-hero.jpg",
+            GroupId = groups.FirstOrDefault(g => g.Name.Contains("Skincare & Self-Care"))?.Id ?? Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
             UserId = user.Id
         }
-            };
+        // Add more posts here if needed
+    };
 
-            await dbContext.Posts.AddRangeAsync(posts);
+            // Add posts only if they don't already exist
+            foreach (var post in posts)
+            {
+                bool exists = await dbContext.Posts
+                    .AnyAsync(p => p.ContentText == post.ContentText && p.UserId == post.UserId);
+
+                if (!exists)
+                {
+                    await dbContext.Posts.AddAsync(post);
+                }
+            }
+
             await dbContext.SaveChangesAsync();
         }
+
 
     }
 }
