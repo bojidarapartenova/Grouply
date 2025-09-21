@@ -11,7 +11,7 @@ namespace Grouply.Models
         [MaxLength(150)]
         public string? Bio { get; set; }
 
-        public string ImageUrl { get; set; } = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+        public string ImageUrl { get; set; } = "/images/pfp.webp";
         public virtual ICollection<Group> Groups { get; set; } =
         new List<Group>();
         public virtual ICollection<GroupMember> GroupMembers { get; set; } =

@@ -20,7 +20,7 @@
     <div class="bg-gray-50 rounded-lg p-3 mb-3 flex items-center gap-2">
         @{
             string creatorImageUrl =
-            "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+            "/images/pfp.webp";
             var user = await UserManager.GetUserAsync(User);
             if (user != null && !string.IsNullOrEmpty(user.ImageUrl))
             {
