@@ -19,6 +19,8 @@
 
     <!-- Tab panes -->
     <div class="tab-content">
+
+        <!-- Following Tab -->
         <div class="tab-pane fade show active" id="following" role="tabpanel" aria-labelledby="following-tab">
             @if (!Model.FollowingPosts.Any())
             {
@@ -28,16 +30,48 @@
             {
                 @foreach (var post in Model.FollowingPosts)
                 {
-                    @Html.Partial("~/Views/Shared/PostCard.cshtml", post)
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header d-flex align-items-center">
+                            <a href="/Groups/Details/@post.Group?.Id">
+                                <img src="@(!string.IsNullOrEmpty(post.Group?.ImageUrl) ? post.Group.ImageUrl : "/images/default-group.png")"
+                                    class="rounded-circle me-3" style="width:50px; height:50px; object-fit:cover;" />
+                            </a>
+                            <div>
+                                <a href="/Groups/Details/@post.Group?.Id" class="fw-bold text-decoration-none text-dark">
+                                    @post.Group?.Name
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            @Html.Partial("~/Views/Shared/PostCard.cshtml", post)
+                        </div>
+                    </div>
                 }
             }
         </div>
 
+        <!-- For You Tab -->
         <div class="tab-pane fade" id="foryou" role="tabpanel" aria-labelledby="foryou-tab">
             @foreach (var post in Model.ForYouPosts)
             {
-                @Html.Partial("~/Views/Shared/PostCard.cshtml", post)
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header d-flex align-items-center">
+                        <a href="/Groups/Details/@post.Group?.Id">
+                            <img src="@(!string.IsNullOrEmpty(post.Group?.ImageUrl) ? post.Group.ImageUrl : "/images/default-group.png")"
+                                class="rounded-circle me-3" style="width:50px; height:50px; object-fit:cover;" />
+                        </a>
+                        <div>
+                            <a href="/Groups/Details/@post.Group?.Id" class="fw-bold text-decoration-none text-dark">
+                                @post.Group?.Name
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @Html.Partial("~/Views/Shared/PostCard.cshtml", post)
+                    </div>
+                </div>
             }
         </div>
+
     </div>
 </div>

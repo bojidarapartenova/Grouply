@@ -1,0 +1,19 @@
+@model Grouply.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = @Model.UserName + "'s Profile";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm p-3 mb-4">
+        <div class="d-flex align-items-center">
+            <img src="@(!string.IsNullOrEmpty(Model.ImageUrl) ? Model.ImageUrl : "/images/pfp.webp")"
+                class="rounded-circle me-3" style="width:100px;height:100px;object-fit:cover;" />
+            <div>
+                <h2>@Model.UserName</h2>
+                <p>Email: @Model.Email</p>
+                <!-- Add more user info here if needed -->
+            </div>
+        </div>
+    </div>
+</div>

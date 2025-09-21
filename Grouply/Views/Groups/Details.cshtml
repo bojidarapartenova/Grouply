@@ -40,92 +40,13 @@
         {
             @foreach (var post in Model.Posts.OrderByDescending(p => p.CreatedAt))
             {
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body">
-                        <!-- Post Header -->
-                        <div class="d-flex align-items-center mb-2">
-
-                            @{
-                                string creatorImageUrl = "/images/pfp.webp";
-                                var user = await UserManager.GetUserAsync(User);
-                                if (user != null && !string.IsNullOrEmpty(user.ImageUrl))
-                                {
-                                    creatorImageUrl = user.ImageUrl;
-                                }
-                            }
-                            <a href="/Users/Profile/@post.User.Id">
-                                <img src="@creatorImageUrl" class="rounded-circle" width="32" height="32" alt="creator" />
-                            </a>
-                            <div>
-                                <a href="/Users/Profile/@post.User.Id" class="fw-bold text-decoration-none text-dark">
-                                    @(post?.User?.UserName ?? "Unknown User")
-                                </a>
-                                <br />
-                                <small class="text-muted">@post.CreatedAt.ToLocalTime().ToString("g")</small>
-                            </div>
-                        </div>
-
-
-                        <!-- Post Content -->
-                        @if (!string.IsNullOrEmpty(post?.ContentText))
-                        {
-                            <p>@post.ContentText</p>
-                        }
-
-                        @if (!string.IsNullOrEmpty(post?.MediaUrl))
-                        {
-                            <img src="@post.MediaUrl" class="img-fluid rounded mb-2" />
-                        }
-
-                        <!-- Likes & Comments summary -->
-                        <div class="d-flex justify-content-between text-muted small mb-2">
-                            <span>@(post?.Likes?.Count() ?? 0) like(s)</span>
-                            <span>@(post?.Comments?.Count() ?? 0) comment(s)</span>
-                        </div>
-
-                        <!-- Actions -->
-                        <div class="d-flex gap-3 mb-2">
-                            <form asp-action="LikePost" asp-route-id="@post.Id" method="post" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-light">👍 Like</button>
-                            </form>
-                            <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#comments-@post.Id">
-                                💬 Comment
-                            </button>
-                        </div>
-
-                        <!-- Comments -->
-                        <div class="collapse" id="comments-@post.Id">
-                            <div class="mt-2">
-                                @foreach (var comment in post.Comments?.OrderBy(c => c.CreatedOn) ??
-                                                        Enumerable.Empty<Grouply.Models.Comment>())
-                                {
-                                    <div class="d-flex mb-2">
-                                        <img src="@(comment?.User?.ImageUrl ?? "/images/default-avatar.png")"
-                                            class="rounded-circle me-2" style="width:30px;height:30px;object-fit:cover;" />
-                                        <div class="bg-light rounded p-2 w-100">
-                                            <strong>@(comment?.User?.UserName ?? "Unknown")</strong>
-                                            <p class="mb-1">@comment?.Text</p>
-                                            <small class="text-muted">@comment?.CreatedOn.ToLocalTime().ToString("g")</small>
-                                        </div>
-                                    </div>
-                                }
-
-                                <!-- Add Comment -->
-                                <form asp-action="AddComment" asp-route-postId="@post.Id" method="post" class="d-flex mt-2">
-                                    <input type="text" name="Content" class="form-control me-2" placeholder="Write a comment..."
-                                        required />
-                                    <button type="submit" class="btn btn-sm btn-primary">Post</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                @Html.Partial("~/Views/Shared/PostCard.cshtml", post)
             }
         }
         else
         {
             <p class="text-muted">No posts yet. Be the first to post!</p>
         }
+
     </div>
 </div>

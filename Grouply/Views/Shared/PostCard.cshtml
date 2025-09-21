@@ -2,74 +2,81 @@
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<Grouply.Models.ApplicationUser> UserManager
 
-<div class="bg-white rounded-2xl shadow-md p-4 mb-6">
-
-    <!-- Box 1: Group -->
-    <div class="bg-gray-100 rounded-lg p-3 mb-3 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-            <img src="@(Model.Group.ImageUrl ?? "/images/default-group.png")" class="rounded-circle" width="32"
-                height="32" alt="group" />
-            <a href="/Groups/Details/@Model.Group.Id" class="font-semibold text-blue-600 hover:underline">
-                @Model.Group.Name
-            </a>
-        </div>
-        <div class="text-gray-400">•••</div>
-    </div>
-
-    <!-- Box 2: Creator -->
-    <div class="bg-gray-50 rounded-lg p-3 mb-3 flex items-center gap-2">
-        @{
-            string creatorImageUrl =
-            "/images/pfp.webp";
-            var user = await UserManager.GetUserAsync(User);
-            if (user != null && !string.IsNullOrEmpty(user.ImageUrl))
-            {
-                creatorImageUrl = user.ImageUrl;
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <!-- Post Header -->
+        <div class="d-flex align-items-center mb-2">
+            @{
+                string creatorImageUrl = "/images/pfp.webp";
+                if (Model?.User != null && !string.IsNullOrEmpty(Model.User.ImageUrl))
+                {
+                    creatorImageUrl = Model.User.ImageUrl;
+                }
             }
-        }
-        <a href="/Users/Profile/@Model.User.Id">
-            <img src="@creatorImageUrl" class="rounded-circle" width="32" height="32" alt="creator" />
-        </a>
-        <a href="/Users/Profile/@Model.User.Id" class="font-medium text-gray-800 hover:underline">
-            @Model.User.UserName
-        </a>
-    </div>
+            <a asp-controller="Users" asp-action="Profile" asp-route-id="@Model.User?.Id">
+                <img src="@(!string.IsNullOrEmpty(Model.User?.ImageUrl) ? Model.User.ImageUrl : "/images/pfp.webp")"
+                    class="rounded-circle me-2" width="32" height="32" />
+            </a>
 
-    <!-- Box 3: Post Content -->
-    <div class="bg-gray-50 rounded-lg p-3 mb-3">
-        @if (Model.PostType == Grouply.Models.Enums.PostType.Video && !string.IsNullOrEmpty(Model.MediaUrl))
-        {
-            <video class="w-full rounded-lg mb-2" controls>
-                <source src="@Model.MediaUrl" type="video/mp4" />
-                Your browser does not support the video tag.
-            </video>
-        }
-        else if (!string.IsNullOrEmpty(Model.MediaUrl))
-        {
-            <img src="@Model.MediaUrl" class="w-full rounded-lg mb-2" alt="post media" />
-        }
+            <a asp-controller="Users" asp-action="Profile" asp-route-id="@Model.User?.Id"
+                class="fw-bold text-decoration-none text-dark">
+                @(Model.User?.UserName ?? "Unknown User")
+            </a>
 
+        </div>
+
+        <!-- Post Content -->
         @if (!string.IsNullOrEmpty(Model.ContentText))
         {
-            <p class="mb-2 text-gray-700">@Model.ContentText</p>
+            <p>@Model.ContentText</p>
         }
 
-        <div class="text-xs text-gray-400">
-            @Model.CreatedAt.ToLocalTime().ToString("g")
+        @if (!string.IsNullOrEmpty(Model.MediaUrl))
+        {
+            <img src="@Model.MediaUrl" class="img-fluid rounded mb-2" />
+        }
+
+        <!-- Likes & Comments summary -->
+        <div class="d-flex justify-content-between text-muted small mb-2">
+            <span>@(Model.Likes?.Count() ?? 0) like(s)</span>
+            <span>@(Model.Comments?.Count() ?? 0) comment(s)</span>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-3 mb-2">
+            <form asp-action="LikePost" asp-route-id="@Model.Id" method="post" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-light">👍 Like</button>
+            </form>
+            <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse"
+                data-bs-target="#comments-@Model.Id">
+                💬 Comment
+            </button>
+        </div>
+
+        <!-- Comments -->
+        <div class="collapse" id="comments-@Model.Id">
+            <div class="mt-2">
+                @foreach (var comment in Model.Comments?.OrderBy(c => c.CreatedOn) ??
+                                Enumerable.Empty<Grouply.Models.Comment>())
+                {
+                    <div class="d-flex mb-2">
+                        <img src="@(comment?.User?.ImageUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2"
+                            style="width:30px;height:30px;object-fit:cover;" />
+                        <div class="bg-light rounded p-2 w-100">
+                            <strong>@(comment?.User?.UserName ?? "Unknown")</strong>
+                            <p class="mb-1">@comment?.Text</p>
+                            <small class="text-muted">@comment?.CreatedOn.ToLocalTime().ToString("g")</small>
+                        </div>
+                    </div>
+                }
+
+                <!-- Add Comment -->
+                <form asp-action="AddComment" asp-route-postId="@Model.Id" method="post" class="d-flex mt-2">
+                    <input type="text" name="Content" class="form-control me-2" placeholder="Write a comment..."
+                        required />
+                    <button type="submit" class="btn btn-sm btn-primary">Post</button>
+                </form>
+            </div>
         </div>
     </div>
-
-    <!-- Box 4: Interactions -->
-    <div class="bg-gray-100 rounded-lg p-3 flex items-center gap-6">
-        <form method="post" action="/Posts/Like/@Model.Id">
-            <button type="submit" class="flex items-center gap-1 text-red-500">
-                ❤️ @Model.Likes.Count
-            </button>
-        </form>
-
-        <a href="/Posts/Details/@Model.Id" class="flex items-center gap-1 text-blue-600">
-            💬 @Model.Comments.Count
-        </a>
-    </div>
-
 </div>
