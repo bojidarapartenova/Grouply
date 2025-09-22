@@ -4,28 +4,55 @@
 
 <div class="card shadow-sm mb-3">
     <div class="card-body">
-        <!-- Post Header -->
-        <div class="d-flex align-items-center mb-2">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center">
+                <a asp-controller="Users" asp-action="Profile" asp-route-id="@Model.User?.Id">
+                    <img src="@(!string.IsNullOrEmpty(Model.User?.ImageUrl) ? Model.User.ImageUrl : "/images/pfp.webp")"
+                        class="rounded-circle me-2" width="32" height="32" />
+                </a>
+
+                <a asp-controller="Users" asp-action="Profile" asp-route-id="@Model.User?.Id"
+                    class="fw-bold text-decoration-none text-dark">
+                    @(Model.User?.UserName ?? "Unknown User")
+                </a>
+            </div>
+
             @{
-                string creatorImageUrl = "/images/pfp.webp";
-                if (Model?.User != null && !string.IsNullOrEmpty(Model.User.ImageUrl))
+                var currentUser = await UserManager.GetUserAsync(User);
+                if (currentUser != null && Model.UserId == currentUser.Id)
                 {
-                    creatorImageUrl = Model.User.ImageUrl;
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                        data-bs-target="#deleteModal-@Model.Id">
+                        🗑 Delete
+                    </button>
+
+                    <div class="modal fade" id="deleteModal-@Model.Id" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content rounded-3 shadow">
+                                <div class="modal-header border-0">
+                                    <h5 class="modal-title">Delete Post</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+
+                                <div class="modal-body text-center">
+                                    <p class="fs-6">Are you sure you want to delete this post?</p>
+                                </div>
+
+                                <div class="modal-footer border-0 d-flex justify-content-between">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+                                    <form asp-action="DeletePost" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 }
             }
-            <a asp-controller="Users" asp-action="Profile" asp-route-id="@Model.User?.Id">
-                <img src="@(!string.IsNullOrEmpty(Model.User?.ImageUrl) ? Model.User.ImageUrl : "/images/pfp.webp")"
-                    class="rounded-circle me-2" width="32" height="32" />
-            </a>
-
-            <a asp-controller="Users" asp-action="Profile" asp-route-id="@Model.User?.Id"
-                class="fw-bold text-decoration-none text-dark">
-                @(Model.User?.UserName ?? "Unknown User")
-            </a>
-
         </div>
 
-        <!-- Post Content -->
         @if (!string.IsNullOrEmpty(Model.ContentText))
         {
             <p>@Model.ContentText</p>
@@ -36,13 +63,11 @@
             <img src="@Model.MediaUrl" class="img-fluid rounded mb-2" />
         }
 
-        <!-- Likes & Comments summary -->
         <div class="d-flex justify-content-between text-muted small mb-2">
             <span>@(Model.Likes?.Count() ?? 0) like(s)</span>
             <span>@(Model.Comments?.Count() ?? 0) comment(s)</span>
         </div>
 
-        <!-- Actions -->
         <div class="d-flex gap-3 mb-2">
             <form asp-action="LikePost" asp-route-id="@Model.Id" method="post" class="d-inline">
                 <button type="submit" class="btn btn-sm btn-light">👍 Like</button>
@@ -53,7 +78,6 @@
             </button>
         </div>
 
-        <!-- Comments -->
         <div class="collapse" id="comments-@Model.Id">
             <div class="mt-2">
                 @foreach (var comment in Model.Comments?.OrderBy(c => c.CreatedOn) ??
@@ -70,7 +94,6 @@
                     </div>
                 }
 
-                <!-- Add Comment -->
                 <form asp-action="AddComment" asp-route-postId="@Model.Id" method="post" class="d-flex mt-2">
                     <input type="text" name="Content" class="form-control me-2" placeholder="Write a comment..."
                         required />

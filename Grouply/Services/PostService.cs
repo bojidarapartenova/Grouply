@@ -2,6 +2,7 @@ using Grouply.Data;
 using Grouply.Models;
 using Grouply.Models.Enums;
 using Grouply.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Grouply.Services
 {

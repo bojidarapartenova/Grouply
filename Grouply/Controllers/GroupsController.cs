@@ -74,7 +74,7 @@ public class GroupsController : BaseController
 
         if (user == null)
         {
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Home");
         }
 
         if (!string.IsNullOrWhiteSpace(contentText) || mediaFile != null)
@@ -84,4 +84,5 @@ public class GroupsController : BaseController
 
         return RedirectToAction("Details", new { id = groupId });
     }
+
 }
