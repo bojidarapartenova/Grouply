@@ -1,7 +1,6 @@
-using Grouply.Models;
-
 namespace Grouply.ViewModels.Home
 {
+    using Grouply.Models;
     public class HomeFeedViewModel
     {
         public IEnumerable<Post> FollowingPosts { get; set; } =

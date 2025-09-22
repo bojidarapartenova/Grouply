@@ -2,6 +2,8 @@ using Grouply.Data;
 using Grouply.Models;
 using Grouply.Models.Enums;
 using Grouply.Services.Interfaces;
+using Grouply.ViewModels.Post;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Grouply.Services
@@ -10,11 +12,14 @@ namespace Grouply.Services
     {
         private readonly GrouplyDbContext dbContext;
         private readonly IWebHostEnvironment env;
+        private readonly UserManager<ApplicationUser> userManager;
 
-        public PostService(GrouplyDbContext dbContext, IWebHostEnvironment env)
+        public PostService(GrouplyDbContext dbContext, IWebHostEnvironment env,
+        UserManager<ApplicationUser> userManager)
         {
             this.dbContext = dbContext;
             this.env = env;
+            this.userManager = userManager;
         }
 
         public async Task<Post> CreatePostAsync(string userId, Guid groupId, string? contentText, IFormFile? mediaFile)
@@ -65,6 +70,22 @@ namespace Grouply.Services
             await dbContext.SaveChangesAsync();
 
             return post;
+        }
+
+        public async Task<Guid?> SoftDeletePostAsync(string userId, Guid postId)
+        {
+            Post? post = await dbContext
+           .Posts
+           .FirstOrDefaultAsync(p => p.Id == postId && p.UserId == userId);
+
+            if (post == null)
+            {
+                return null;
+            }
+
+            post.IsDeleted = true;
+            await dbContext.SaveChangesAsync();
+            return post.GroupId;
         }
     }
 }

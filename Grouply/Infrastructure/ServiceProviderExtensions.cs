@@ -15,8 +15,7 @@ namespace Grouply.Infrastructure
             var dbContext = serviceProvider.GetRequiredService<GrouplyDbContext>();
 
             // Ensure Admin role exists
-            bool isAdminRoleExisting = await roleManager.RoleExistsAsync("Admin");
-            if (!isAdminRoleExisting)
+            if (!await roleManager.RoleExistsAsync("Admin"))
             {
                 await roleManager.CreateAsync(new IdentityRole("Admin"));
             }
@@ -26,15 +25,12 @@ namespace Grouply.Infrastructure
                 .Where(u => u.Email == "admin@example.com")
                 .ToListAsync();
 
-            if (duplicateAdmins.Count > 1)
+            for (int i = 1; i < duplicateAdmins.Count; i++)
             {
-                // Keep the first, remove the rest
-                for (int i = 1; i < duplicateAdmins.Count; i++)
-                {
-                    dbContext.Users.Remove(duplicateAdmins[i]);
-                }
-                await dbContext.SaveChangesAsync();
+                dbContext.Users.Remove(duplicateAdmins[i]);
             }
+            if (duplicateAdmins.Count > 1)
+                await dbContext.SaveChangesAsync();
 
             // Find or create admin safely
             var admin = await dbContext.Users
@@ -43,7 +39,12 @@ namespace Grouply.Infrastructure
 
             if (admin == null)
             {
-                admin = new ApplicationUser { UserName = "admin", Email = "admin@example.com", EmailConfirmed = true };
+                admin = new ApplicationUser
+                {
+                    UserName = "admin",
+                    Email = "admin@example.com",
+                    EmailConfirmed = true
+                };
                 var result = await userManager.CreateAsync(admin, "Password123!");
                 if (!result.Succeeded)
                 {
@@ -62,12 +63,12 @@ namespace Grouply.Infrastructure
 
                 if (!exists)
                 {
+                    group.IsDeleted = false; // ensure not deleted
                     dbContext.Groups.Add(group);
                 }
             }
             await dbContext.SaveChangesAsync();
         }
-
 
         public static async Task SeedUsersAsync(this IServiceProvider serviceProvider)
         {
@@ -79,7 +80,6 @@ namespace Grouply.Infrastructure
             const string username = "UserExample";
 
             var existingUser = await userManager.FindByEmailAsync(userEmail);
-            ApplicationUser seedUser;
 
             if (existingUser == null)
             {
@@ -97,12 +97,6 @@ namespace Grouply.Infrastructure
                         $"Failed to create seed user: {string.Join(", ", result.Errors.Select(e => e.Description))}"
                     );
                 }
-
-                seedUser = newUser;
-            }
-            else
-            {
-                seedUser = existingUser;
             }
         }
 
@@ -116,7 +110,8 @@ namespace Grouply.Infrastructure
                     Name = "Fashion & Style Inspiration",
                     Description = "Share outfit ideas, fashion trends, and style tips. Connect with fashion lovers.",
                     ImageUrl = "https://images.unsplash.com/photo-1603189343302-e603f7add05a?w=900&auto=format&fit=crop&q=60",
-                    CreatedById=publisherId
+                    CreatedById=publisherId,
+                    IsDeleted = false
                 },
                 new Group
                 {
@@ -124,7 +119,8 @@ namespace Grouply.Infrastructure
                     Name = "Photography Enthusiasts",
                     Description = "Share your photos, learn techniques, and explore photography challenges.",
                     ImageUrl = "https://images.unsplash.com/photo-1548502499-ef49e8cf98d4?w=900&auto=format&fit=crop&q=60",
-                    CreatedById=publisherId
+                    CreatedById=publisherId,
+                    IsDeleted = false
                 },
                 new Group
                 {
@@ -132,7 +128,8 @@ namespace Grouply.Infrastructure
                     Name = "Music Lovers",
                     Description = "Discuss genres, share playlists, and discover new music with fellow enthusiasts.",
                     ImageUrl = "https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=900&auto=format&fit=crop&q=60",
-                    CreatedById=publisherId
+                    CreatedById=publisherId,
+                    IsDeleted = false
                 },
                 new Group
                 {
@@ -140,7 +137,8 @@ namespace Grouply.Infrastructure
                     Name = "Fitness Challenges",
                     Description = "Join weekly fitness challenges, share progress, and motivate each other.",
                     ImageUrl = "https://images.unsplash.com/photo-1521805103424-d8f8430e8933?w=900&auto=format&fit=crop&q=60",
-                    CreatedById=publisherId
+                    CreatedById=publisherId,
+                    IsDeleted = false
                 },
                 new Group
                 {
@@ -148,7 +146,8 @@ namespace Grouply.Infrastructure
                     Name = "Skincare & Self-Care",
                     Description = "Discuss skincare routines, product recommendations, and self-care practices.",
                     ImageUrl = "https://images.unsplash.com/photo-1608068811588-3a67006b7489?w=900&auto=format&fit=crop&q=60",
-                    CreatedById=publisherId
+                    CreatedById=publisherId,
+                    IsDeleted = false
                 }
             };
         }
@@ -166,35 +165,37 @@ namespace Grouply.Infrastructure
                 throw new InvalidOperationException("Seed users must exist before seeding posts.");
 
             // Get existing groups
-            var groups = await dbContext.Groups.ToListAsync();
+            var groups = await dbContext.Groups.IgnoreQueryFilters().ToListAsync();
 
             // Define posts to seed
             var posts = new List<Post>
-    {
-        new Post
-        {
-            Id = Guid.NewGuid(),
-            ContentText = "Sharing my latest fitness progress – feeling great!",
-            CreatedAt = DateTime.UtcNow.AddHours(-1),
-            GroupId = groups.FirstOrDefault(g => g.Name.Contains("Fitness Challenges"))?.Id ?? Guid.NewGuid(),
-            UserId = user.Id
-        },
-        new Post
-        {
-            Id = Guid.NewGuid(),
-            ContentText = "What do you think about this lip gloss? Is it worth the money?",
-            MediaUrl = "https://www.sephora.com/productimages/sku/s2830453-main-hero.jpg",
-            GroupId = groups.FirstOrDefault(g => g.Name.Contains("Skincare & Self-Care"))?.Id ?? Guid.NewGuid(),
-            CreatedAt = DateTime.UtcNow,
-            UserId = user.Id
-        }
-        // Add more posts here if needed
-    };
+            {
+                new Post
+                {
+                    Id = Guid.NewGuid(),
+                    ContentText = "Sharing my latest fitness progress – feeling great!",
+                    CreatedAt = DateTime.UtcNow.AddHours(-1),
+                    GroupId = groups.FirstOrDefault(g => g.Name.Contains("Fitness Challenges"))?.Id ?? Guid.NewGuid(),
+                    UserId = user.Id,
+                    IsDeleted = false
+                },
+                new Post
+                {
+                    Id = Guid.NewGuid(),
+                    ContentText = "What do you think about this lip gloss? Is it worth the money?",
+                    MediaUrl = "https://www.sephora.com/productimages/sku/s2830453-main-hero.jpg",
+                    GroupId = groups.FirstOrDefault(g => g.Name.Contains("Skincare & Self-Care"))?.Id ?? Guid.NewGuid(),
+                    CreatedAt = DateTime.UtcNow,
+                    UserId = user.Id,
+                    IsDeleted = false
+                }
+            };
 
             // Add posts only if they don't already exist
             foreach (var post in posts)
             {
                 bool exists = await dbContext.Posts
+                    .IgnoreQueryFilters()
                     .AnyAsync(p => p.ContentText == post.ContentText && p.UserId == post.UserId);
 
                 if (!exists)
@@ -205,8 +206,5 @@ namespace Grouply.Infrastructure
 
             await dbContext.SaveChangesAsync();
         }
-
-
     }
 }
-

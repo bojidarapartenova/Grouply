@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Grouply.Controllers;
 using Microsoft.AspNetCore.Identity;
 using Grouply.Services.Interfaces;
+using Grouply.ViewModels.Post;
 
 public class GroupsController : BaseController
 {
@@ -83,5 +84,32 @@ public class GroupsController : BaseController
         }
 
         return RedirectToAction("Details", new { id = groupId });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeletePost(Guid postId)
+    {
+        try
+        {
+            var user = await userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            Guid? groupId = await postService.SoftDeletePostAsync(user.Id, postId);
+            if (groupId == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            return RedirectToAction(nameof(Details), new { id = groupId });
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

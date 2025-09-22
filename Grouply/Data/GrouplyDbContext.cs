@@ -24,10 +24,21 @@ namespace Grouply.Data
         {
             base.OnModelCreating(builder);
 
+            builder.Entity<Post>()
+            .HasQueryFilter(p => p.IsDeleted == false);
+
+            builder.Entity<Group>()
+            .HasQueryFilter(p => p.IsDeleted == false);
+
+            builder.Entity<Comment>()
+            .HasQueryFilter(p => p.IsDeleted == false);
+
+            builder.Entity<Message>()
+            .HasQueryFilter(p => p.IsDeleted == false);
+
             builder.Entity<ApplicationUser>()
                 .HasIndex(u => u.NormalizedEmail)
                 .IsUnique();
-
 
             builder.Entity<Group>()
                 .HasOne(g => g.CreatedBy)
