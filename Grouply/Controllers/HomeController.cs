@@ -25,7 +25,6 @@ namespace Grouply.Controllers
         {
             if (User.Identity?.IsAuthenticated ?? false)
             {
-                // Logged in → personalized feed
                 var user = await userManager.GetUserAsync(User);
                 var followingPosts = await feedService.GetFollowingPostsAsync(user.Id);
                 var forYouPosts = await feedService.GetForYouPostsAsync();
@@ -37,13 +36,12 @@ namespace Grouply.Controllers
                     HasJoinedGroups = followingPosts.Any()
                 };
 
-                return View("Index", vm); // render feed view
+                return View("Index", vm);
             }
 
-            // Not logged in → public landing page
             var popularPosts = await feedService.GetForYouPostsAsync();
 
-            return View("Landing", popularPosts); // render landing view
+            return View("Landing", popularPosts);
         }
     }
 }
