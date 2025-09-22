@@ -33,6 +33,7 @@ public class Program
         builder.Services.AddTransient<IEmailSender, NoOpEmailSender>();
         builder.Services.AddScoped<IGroupService, GroupService>();
         builder.Services.AddScoped<IFeedService, FeedService>();
+        builder.Services.AddScoped<IPostService, PostService>();
 
         builder.Services.AddControllersWithViews();
 
