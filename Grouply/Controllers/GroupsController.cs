@@ -84,5 +84,4 @@ public class GroupsController : BaseController
 
         return RedirectToAction("Details", new { id = groupId });
     }
-
 }

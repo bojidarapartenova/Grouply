@@ -1,0 +1,36 @@
+@model IEnumerable<Grouply.Models.Group>
+
+@{
+    ViewData["Title"] = "Groups";
+}
+
+<h2 class="mb-4">Groups</h2>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    @foreach (var group in Model)
+    {
+        <div class="col">
+            <a asp-action="Details" asp-route-id="@group.Id" class="text-decoration-none text-dark">
+                <div class="card h-100 shadow-sm">
+                    @if (!string.IsNullOrEmpty(group.ImageUrl))
+                    {
+                        <img src="@group.ImageUrl" class="card-img-top" style="height:200px; object-fit:cover;"
+                            alt="@group.Name">
+                    }
+                    else
+                    {
+                        <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center"
+                            style="height:200px;">
+                            No Image
+                        </div>
+                    }
+
+                    <div class="card-body">
+                        <h5 class="card-title">@group.Name</h5>
+                        <p class="card-text text-truncate">@group.Description</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
